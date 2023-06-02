@@ -7,8 +7,9 @@
 
 const float SCALE_FACTOR = 0.01f;
 
-void Entity::initialize(b2World *world, const b2BodyType& type, const float& density, const sf::Color& color) {
-    std::cout << "Initializing with angle " << angle << "\n";
+//Normally, i would create a Component system or use Polymorphism for these instead of injecting it in one function
+void Entity::initialize(b2World *world, const b2BodyType& type, const float& density) {
+    //std::cout << "Initializing with angle " << angle << "\n";
 
     bodyDefinition.position.Set(position.x * SCALE_FACTOR, position.y * SCALE_FACTOR);
     bodyDefinition.angle = angle * b2_pi / 180.0f;
@@ -29,7 +30,6 @@ void Entity::initialize(b2World *world, const b2BodyType& type, const float& den
 
     rectShape.setSize(size);
     rectShape.setOrigin(size.x / 2.f, size.y / 2.f);
-    rectShape.setFillColor(color);
     rectShape.setRotation(angle);
 }
 
@@ -69,8 +69,25 @@ bool Entity::isOverlappingPoint(sf::Vector2f point) {
     return rectShape.getGlobalBounds().contains(point);
 }
 
-void Entity::push(sf::Vector2f force, sf::Vector2f point) {
-    b2Vec2 pushForce {force.x * SCALE_FACTOR, force.y * SCALE_FACTOR};
+void Entity::push(sf::Vector2f impulse, sf::Vector2f point) {
+    b2Vec2 pushImpulse {impulse.x * -SCALE_FACTOR, impulse.y * -SCALE_FACTOR};
     b2Vec2 pushPoint {point.x * SCALE_FACTOR, point.y * SCALE_FACTOR};
-    body->ApplyForce(pushForce, pushPoint, true);
+    body->ApplyLinearImpulse(pushImpulse, pushPoint, true);
+}
+
+void Entity::setSprite(const std::string& imgName) {
+    std::string path = "../assets/img/" + imgName;
+    if (!texture.loadFromFile(path))
+        throw std::invalid_argument(path + " is NOT a valid Asset path");
+    texture.setSmooth(true);
+
+    rectShape.setTexture(&texture);
+}
+
+void Entity::setRepeatTextureHorizontally() {
+    int y = texture.getSize().y;
+    float xRepeat = size.x / size.y;
+    int x = texture.getSize().x * xRepeat;
+    rectShape.setTextureRect(sf::IntRect(0, 0, x,  y));
+    texture.setRepeated(true);
 }

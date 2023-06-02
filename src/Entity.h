@@ -15,9 +15,11 @@ public:
     Entity(sf::Vector2f size);
     Entity();
     ~Entity();
-    void initialize(b2World* world, const b2BodyType& type, const float& density, const sf::Color& color);
+    void initialize(b2World* world, const b2BodyType& type, const float& density);
+    void setSprite(const std::string& imgName);
+    void setRepeatTextureHorizontally();
     bool isOverlappingPoint(sf::Vector2f point);
-    void push(sf::Vector2f direction, sf::Vector2f point);
+    void push(sf::Vector2f impulse, sf::Vector2f point);
     void render(sf::RenderWindow* window);
     void update();
     sf::Vector2f position {0.f, 0.f};
@@ -27,6 +29,7 @@ public:
 private:
     b2BodyDef bodyDefinition;
     b2Body* body;
+    sf::Texture texture;
     sf::RectangleShape rectShape;
 
 };

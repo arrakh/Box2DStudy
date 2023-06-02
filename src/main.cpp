@@ -19,15 +19,27 @@ int main()
 
     std::cout << "INITIALIZING\n";
 
-    b2Vec2 gravity {0.0f, 4.8f};
+    b2Vec2 gravity {0.0f, 9.8f};
     b2World world {gravity};
 
     auto window = sf::RenderWindow{ { width, height }, "CMake SFML Project" };
     window.setFramerateLimit(144);
     window.setView(worldView);
 
-    Entity ground{sf::Vector2f {0, 300}, sf::Vector2f {1000, 20}};
-    ground.initialize(&world, b2_staticBody, 0.f, sf::Color{0, 0, 255});
+    sf::Sprite background;
+    sf::Texture bgTexture;
+    std::string path = "../assets/img/bg.jpg";
+    if (!bgTexture.loadFromFile(path))
+        throw std::invalid_argument(path + " is NOT a valid Asset path");
+
+    bgTexture.setSmooth(true);
+    background.setTexture(bgTexture);
+    background.setOrigin(bgTexture.getSize().x / 2.f, bgTexture.getSize().y / 2.f);
+
+    Entity ground{sf::Vector2f {0, 320}, sf::Vector2f {10000, 100}};
+    ground.initialize(&world, b2_staticBody, 0.f);
+    ground.setSprite("wood.png");
+    ground.setRepeatTextureHorizontally();
 
     std::cout << "INITIALIZED GROUND WITH POSITION x:" << ground.position.x << ", y:" << ground.position.y << "\n";
 
@@ -37,15 +49,18 @@ int main()
     for (auto& entity : entities) {
         std::uniform_real_distribution<float> randomPositionX(-300.f, 300.f);
         std::uniform_real_distribution<float> randomPositionY(-300.f, 100.f);
-        std::uniform_real_distribution<float> randomSize(20.0f, 40.0f);
+        std::uniform_real_distribution<float> randomSize(40.0f, 80.0f);
         std::uniform_real_distribution<float> randomAngle(0.0f, 360.f);
 
+        float size = randomSize(gen);
+
         entity.position = sf::Vector2f (randomPositionX(gen), randomPositionY(gen));
-        entity.size = sf::Vector2f (randomSize(gen), randomSize(gen));
+        entity.size = sf::Vector2f (size, size);
         entity.angle = randomAngle(gen);
 
-        entity.initialize(&world, b2_dynamicBody, 1.f, sf::Color{255, 0, 0});
-        std::cout << "INITIALIZED ENTITY WITH POSITION x:" << entity.position.x << ", y:" << entity.position.y << "\n";
+        entity.initialize(&world, b2_dynamicBody, 1.f);
+        entity.setSprite("crate.png");
+        //std::cout << "INITIALIZED ENTITY WITH POSITION x:" << entity.position.x << ", y:" << entity.position.y << "\n";
     }
 
     sf::Clock deltaClock;
@@ -68,7 +83,7 @@ int main()
 
                 auto worldPos = window.mapPixelToCoords(mousePos, worldView);
 
-                sf::Vector2f pushDirection {0.0f, 5000.0f};
+                sf::Vector2f pushDirection {0.0f, 400.0f};
 
                 for (auto& entity : entities) {
                     if(entity.isOverlappingPoint(worldPos)) entity.push(pushDirection, worldPos);
@@ -94,6 +109,8 @@ int main()
 
         //Render Step
         window.clear();
+
+        window.draw(background);
 
         ground.render(&window);
         for (auto& entity : entities) {
